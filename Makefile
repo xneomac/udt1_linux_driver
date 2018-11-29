@@ -1,4 +1,4 @@
-obj-m+=mcba_usb.o
+obj-m+=udt1cri_usb.o
 
 KERNEL_SRC := /lib/modules/$(shell uname -r)/build/
 SRC := $(shell pwd)
@@ -13,6 +13,11 @@ clean:
 modules_install: all
 	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules_install
 	$(DEPMOD)	
+
+run:
+	modprobe --remove udt1cri_usb
+	$(MAKE) modules_install
+	sudo modprobe udt1cri_usb
 
 test:
 	g++ -lgtest_main -lgtest -lpthread ./tests/mcba_tests.cpp -o ./tests/mcba_tests

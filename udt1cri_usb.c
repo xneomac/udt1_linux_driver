@@ -28,29 +28,29 @@
 #include <linux/can/error.h>
 
 /* vendor and product id */
-#define MCBA_MODULE_NAME         "mcba_usb"
-#define MCBA_VENDOR_ID           0x04d8
-#define MCBA_PRODUCT_ID          0x0a30
+#define UDT1CRI_MODULE_NAME         "udt1cr-i_usb"
+#define UDT1CRI_VENDOR_ID           0x04d8
+#define UDT1CRI_PRODUCT_ID          0xee0c
 
 /* driver constants */
-#define MCBA_MAX_RX_URBS         20
-#define MCBA_MAX_TX_URBS         20
-#define MCBA_CTX_FREE            MCBA_MAX_TX_URBS
+#define UDT1CRI_MAX_RX_URBS         20
+#define UDT1CRI_MAX_TX_URBS         20
+#define UDT1CRI_CTX_FREE            UDT1CRI_MAX_TX_URBS
 
 /* RX buffer must be bigger than msg size since at the
  * beggining USB messages are stacked.
  */
-#define MCBA_USB_RX_BUFF_SIZE    64
-#define MCBA_USB_TX_BUFF_SIZE    (sizeof(struct mcba_usb_msg))
+#define UDT1CRI_USB_RX_BUFF_SIZE    64
+#define UDT1CRI_USB_TX_BUFF_SIZE    (sizeof(struct udt1cri_usb_msg))
 
-/* MCBA endpoint numbers */
-#define MCBA_USB_EP_IN           1
-#define MCBA_USB_EP_OUT          1
+/* UDT1CRI endpoint numbers */
+#define UDT1CRI_USB_EP_IN           1
+#define UDT1CRI_USB_EP_OUT          1
 
 /* Not required by driver itself as CANBUS is USB based
  * Used internally by candev for bitrate calculation
  */
-#define MCBA_CAN_CLOCK           40000000
+#define UDT1CRI_CAN_CLOCK           40000000
 
 /* Microchip command id */
 #define MBCA_CMD_RECEIVE_MESSAGE                0xE3
@@ -64,92 +64,92 @@
 #define MBCA_CMD_TRANSMIT_MESSAGE_RSP           0xE2
 
 /* debug module parameter handling */
-#define MCBA_PARAM_DEBUG_DISABLE    0
-#define MCBA_PARAM_DEBUG_USB        1
-#define MCBA_PARAM_DEBUG_CAN        2
-#define MCBA_IS_USB_DEBUG()         (debug & MCBA_PARAM_DEBUG_USB)
-#define MCBA_IS_CAN_DEBUG()         (debug & MCBA_PARAM_DEBUG_CAN)
+#define UDT1CRI_PARAM_DEBUG_DISABLE    0
+#define UDT1CRI_PARAM_DEBUG_USB        1
+#define UDT1CRI_PARAM_DEBUG_CAN        2
+#define UDT1CRI_IS_USB_DEBUG()         (debug & UDT1CRI_PARAM_DEBUG_USB)
+#define UDT1CRI_IS_CAN_DEBUG()         (debug & UDT1CRI_PARAM_DEBUG_CAN)
 
-#define MCBA_VER_REQ_USB             1
-#define MCBA_VER_REQ_CAN             2
+#define UDT1CRI_VER_REQ_USB             1
+#define UDT1CRI_VER_REQ_CAN             2
 
-#define MCBA_CAN_S_SID0_SID2_MASK    0x7
-#define MCBA_CAN_S_SID3_SID10_MASK   0x7F8
-#define MCBA_CAN_S_SID3_SID10_SHIFT  3
+#define UDT1CRI_CAN_S_SID0_SID2_MASK    0x7
+#define UDT1CRI_CAN_S_SID3_SID10_MASK   0x7F8
+#define UDT1CRI_CAN_S_SID3_SID10_SHIFT  3
 
-#define MCBA_CAN_EID0_EID7_MASK      0xff
-#define MCBA_CAN_EID8_EID15_MASK     0xff00
-#define MCBA_CAN_EID16_EID17_MASK    0x30000
-#define MCBA_CAN_E_SID0_SID2_MASK    0x1c0000
-#define MCBA_CAN_E_SID3_SID10_MASK   0x1fe00000
-#define MCBA_CAN_EID8_EID15_SHIFT    8
-#define MCBA_CAN_EID16_EID17_SHIFT   16
-#define MCBA_CAN_E_SID0_SID2_SHIFT   18
-#define MCBA_CAN_E_SID3_SID10_SHIFT  21
+#define UDT1CRI_CAN_EID0_EID7_MASK      0xff
+#define UDT1CRI_CAN_EID8_EID15_MASK     0xff00
+#define UDT1CRI_CAN_EID16_EID17_MASK    0x30000
+#define UDT1CRI_CAN_E_SID0_SID2_MASK    0x1c0000
+#define UDT1CRI_CAN_E_SID3_SID10_MASK   0x1fe00000
+#define UDT1CRI_CAN_EID8_EID15_SHIFT    8
+#define UDT1CRI_CAN_EID16_EID17_SHIFT   16
+#define UDT1CRI_CAN_E_SID0_SID2_SHIFT   18
+#define UDT1CRI_CAN_E_SID3_SID10_SHIFT  21
 
-#define MCBA_SIDL_SID0_SID2_MASK     0xe0
-#define MCBA_SIDL_EXID_MASK          0x8
-#define MCBA_SIDL_EID16_EID17_MASK   0x3
-#define MCBA_SIDL_SID0_SID2_SHIFT    5
+#define UDT1CRI_SIDL_SID0_SID2_MASK     0xe0
+#define UDT1CRI_SIDL_EXID_MASK          0x8
+#define UDT1CRI_SIDL_EID16_EID17_MASK   0x3
+#define UDT1CRI_SIDL_SID0_SID2_SHIFT    5
 
-#define MCBA_DLC_MASK                0xf
-#define MCBA_DLC_RTR_MASK            0x40
+#define UDT1CRI_DLC_MASK                0xf
+#define UDT1CRI_DLC_RTR_MASK            0x40
 
-#define MCBA_CAN_RTR_MASK            0x40000000
-#define MCBA_CAN_EXID_MASK           0x80000000
+#define UDT1CRI_CAN_RTR_MASK            0x40000000
+#define UDT1CRI_CAN_EXID_MASK           0x80000000
 
-#define MCBA_SET_S_SIDL(can_id)\
-(((can_id) & MCBA_CAN_S_SID0_SID2_MASK) << MCBA_SIDL_SID0_SID2_SHIFT)
+#define UDT1CRI_SET_S_SIDL(can_id)\
+(((can_id) & UDT1CRI_CAN_S_SID0_SID2_MASK) << UDT1CRI_SIDL_SID0_SID2_SHIFT)
 
-#define MCBA_SET_E_SIDL(can_id)\
-(((((can_id) & MCBA_CAN_E_SID0_SID2_MASK) >> MCBA_CAN_E_SID0_SID2_SHIFT)\
-<< MCBA_SIDL_SID0_SID2_SHIFT) |\
-(((can_id) & MCBA_CAN_EID16_EID17_MASK) >> MCBA_CAN_EID16_EID17_SHIFT) |\
-MCBA_SIDL_EXID_MASK)
+#define UDT1CRI_SET_E_SIDL(can_id)\
+(((((can_id) & UDT1CRI_CAN_E_SID0_SID2_MASK) >> UDT1CRI_CAN_E_SID0_SID2_SHIFT)\
+<< UDT1CRI_SIDL_SID0_SID2_SHIFT) |\
+(((can_id) & UDT1CRI_CAN_EID16_EID17_MASK) >> UDT1CRI_CAN_EID16_EID17_SHIFT) |\
+UDT1CRI_SIDL_EXID_MASK)
 
-#define MCBA_SET_S_SIDH(can_id)\
-(((can_id) & MCBA_CAN_S_SID3_SID10_MASK) >> MCBA_CAN_S_SID3_SID10_SHIFT)
+#define UDT1CRI_SET_S_SIDH(can_id)\
+(((can_id) & UDT1CRI_CAN_S_SID3_SID10_MASK) >> UDT1CRI_CAN_S_SID3_SID10_SHIFT)
 
-#define MCBA_SET_E_SIDH(can_id)\
-(((can_id) & MCBA_CAN_E_SID3_SID10_MASK) >> MCBA_CAN_E_SID3_SID10_SHIFT)
+#define UDT1CRI_SET_E_SIDH(can_id)\
+(((can_id) & UDT1CRI_CAN_E_SID3_SID10_MASK) >> UDT1CRI_CAN_E_SID3_SID10_SHIFT)
 
-#define MCBA_SET_EIDL(can_id)\
-((can_id) & MCBA_CAN_EID0_EID7_MASK)
+#define UDT1CRI_SET_EIDL(can_id)\
+((can_id) & UDT1CRI_CAN_EID0_EID7_MASK)
 
-#define MCBA_SET_EIDH(can_id)\
-(((can_id) & MCBA_CAN_EID8_EID15_MASK) >> MCBA_CAN_EID8_EID15_SHIFT)
+#define UDT1CRI_SET_EIDH(can_id)\
+(((can_id) & UDT1CRI_CAN_EID8_EID15_MASK) >> UDT1CRI_CAN_EID8_EID15_SHIFT)
 
-#define MCBA_CAN_GET_SID(usb_msg)\
-((((usb_msg)->sidl & MCBA_SIDL_SID0_SID2_MASK) >> MCBA_SIDL_SID0_SID2_SHIFT) |\
-((usb_msg)->sidh << MCBA_CAN_S_SID3_SID10_SHIFT))
+#define UDT1CRI_CAN_GET_SID(usb_msg)\
+((((usb_msg)->sidl & UDT1CRI_SIDL_SID0_SID2_MASK) >> UDT1CRI_SIDL_SID0_SID2_SHIFT) |\
+((usb_msg)->sidh << UDT1CRI_CAN_S_SID3_SID10_SHIFT))
 
-#define MCBA_CAN_GET_EID(usb_msg)\
-((((usb_msg)->sidh << MCBA_CAN_E_SID3_SID10_SHIFT) |\
-(((usb_msg)->sidl & MCBA_SIDL_SID0_SID2_MASK) >> MCBA_SIDL_SID0_SID2_SHIFT) \
-<< MCBA_CAN_E_SID0_SID2_SHIFT) |\
-(((usb_msg)->sidl & MCBA_SIDL_EID16_EID17_MASK) \
-<< MCBA_CAN_EID16_EID17_SHIFT) |\
-((usb_msg)->eidh << MCBA_CAN_EID8_EID15_SHIFT) |\
+#define UDT1CRI_CAN_GET_EID(usb_msg)\
+((((usb_msg)->sidh << UDT1CRI_CAN_E_SID3_SID10_SHIFT) |\
+(((usb_msg)->sidl & UDT1CRI_SIDL_SID0_SID2_MASK) >> UDT1CRI_SIDL_SID0_SID2_SHIFT) \
+<< UDT1CRI_CAN_E_SID0_SID2_SHIFT) |\
+(((usb_msg)->sidl & UDT1CRI_SIDL_EID16_EID17_MASK) \
+<< UDT1CRI_CAN_EID16_EID17_SHIFT) |\
+((usb_msg)->eidh << UDT1CRI_CAN_EID8_EID15_SHIFT) |\
 (usb_msg)->eidl |\
-MCBA_CAN_EXID_MASK)
+UDT1CRI_CAN_EXID_MASK)
 
-#define MCBA_RX_IS_EXID(usb_msg)    ((usb_msg)->sidl & MCBA_SIDL_EXID_MASK)
-#define MCBA_RX_IS_RTR(usb_msg)     ((usb_msg)->dlc & MCBA_DLC_RTR_MASK)
-#define MCBA_TX_IS_EXID(can_frame)  ((can_frame)->can_id & MCBA_CAN_EXID_MASK)
-#define MCBA_TX_IS_RTR(can_frame)   ((can_frame)->can_id & MCBA_CAN_RTR_MASK)
+#define UDT1CRI_RX_IS_EXID(usb_msg)    ((usb_msg)->sidl & UDT1CRI_SIDL_EXID_MASK)
+#define UDT1CRI_RX_IS_RTR(usb_msg)     ((usb_msg)->dlc & UDT1CRI_DLC_RTR_MASK)
+#define UDT1CRI_TX_IS_EXID(can_frame)  ((can_frame)->can_id & UDT1CRI_CAN_EXID_MASK)
+#define UDT1CRI_TX_IS_RTR(can_frame)   ((can_frame)->can_id & UDT1CRI_CAN_RTR_MASK)
 
-struct mcba_usb_ctx {
-	struct mcba_priv *priv;
+struct udt1cri_usb_ctx {
+	struct udt1cri_priv *priv;
 	u32 ndx;
 	u8 dlc;
 	bool can;
 };
 
 /* Structure to hold all of our device specific stuff */
-struct mcba_priv {
+struct udt1cri_priv {
 	struct can_priv can; /* must be the first member */
-	struct sk_buff *echo_skb[MCBA_MAX_TX_URBS];
-	struct mcba_usb_ctx tx_context[MCBA_MAX_TX_URBS];
+	struct sk_buff *echo_skb[UDT1CRI_MAX_TX_URBS];
+	struct udt1cri_usb_ctx tx_context[UDT1CRI_MAX_TX_URBS];
 
 	struct usb_device *udev;
 	struct net_device *netdev;
@@ -162,7 +162,7 @@ struct mcba_priv {
 };
 
 /* command frame */
-struct __packed mcba_usb_msg_can {
+struct __packed udt1cri_usb_msg_can {
 	u8 cmd_id;
 	u8 eidh;
 	u8 eidl;
@@ -175,12 +175,12 @@ struct __packed mcba_usb_msg_can {
 };
 
 /* command frame */
-struct __packed mcba_usb_msg {
+struct __packed udt1cri_usb_msg {
 	u8 cmd_id;
 	u8 unused[18];
 };
 
-struct __packed mcba_usb_msg_ka_usb {
+struct __packed udt1cri_usb_msg_ka_usb {
 	u8 cmd_id;
 	u8 termination_state;
 	u8 soft_ver_major;
@@ -188,7 +188,7 @@ struct __packed mcba_usb_msg_ka_usb {
 	u8 unused[15];
 };
 
-struct __packed mcba_usb_msg_ka_can {
+struct __packed udt1cri_usb_msg_ka_can {
 	u8 cmd_id;
 	u8 tx_err_cnt;
 	u8 rx_err_cnt;
@@ -207,20 +207,20 @@ struct __packed mcba_usb_msg_ka_can {
 	u8 unused[4];
 };
 
-struct __packed mcba_usb_msg_change_bitrate {
+struct __packed udt1cri_usb_msg_change_bitrate {
 	u8 cmd_id;
 	u8 bitrate_hi;
 	u8 bitrate_lo;
 	u8 unused[16];
 };
 
-struct __packed mcba_usb_msg_terminaton {
+struct __packed udt1cri_usb_msg_terminaton {
 	u8 cmd_id;
 	u8 termination;
 	u8 unused[17];
 };
 
-struct __packed mcba_usb_msg_fw_ver {
+struct __packed udt1cri_usb_msg_fw_ver {
 	u8 cmd_id;
 	u8 pic;
 	u8 unused[17];
@@ -232,8 +232,8 @@ struct bitrate_settings {
 };
 
 /* Required by can-dev but not for the sake of driver as CANBUS is USB based */
-static const struct can_bittiming_const mcba_bittiming_const = {
-	.name = "mcba_usb",
+static const struct can_bittiming_const udt1cri_bittiming_const = {
+	.name = "udt1cri_usb",
 	.tseg1_min = 1,
 	.tseg1_max = 8,
 	.tseg2_min = 1,
@@ -487,30 +487,30 @@ static int debug;
 module_param(debug, int, 0664);
 MODULE_PARM_DESC(debug,
 		 "Binary flag to control device debug (keep alive) prints in dmesg. 0='Debug prints disabled' "
-		 __stringify(MCBA_PARAM_DEBUG_USB) "='PIC_USB debugs enabled' "
-		 __stringify(MCBA_PARAM_DEBUG_CAN) "='PIC_CAN debugs enabled'");
+		 __stringify(UDT1CRI_PARAM_DEBUG_USB) "='PIC_USB debugs enabled' "
+		 __stringify(UDT1CRI_PARAM_DEBUG_CAN) "='PIC_CAN debugs enabled'");
 
-static const struct usb_device_id mcba_usb_table[] = {
-	{ USB_DEVICE(MCBA_VENDOR_ID, MCBA_PRODUCT_ID) },
+static const struct usb_device_id udt1cri_usb_table[] = {
+	{ USB_DEVICE(UDT1CRI_VENDOR_ID, UDT1CRI_PRODUCT_ID) },
 	{ } /* Terminating entry */
 };
 
-MODULE_DEVICE_TABLE(usb, mcba_usb_table);
+MODULE_DEVICE_TABLE(usb, udt1cri_usb_table);
 
-static netdev_tx_t mcba_usb_xmit(struct mcba_priv *priv,
-				 struct mcba_usb_msg *usb_msg,
+static netdev_tx_t udt1cri_usb_xmit(struct udt1cri_priv *priv,
+				 struct udt1cri_usb_msg *usb_msg,
 				 struct sk_buff *skb);
-static void mcba_usb_xmit_cmd(struct mcba_priv *priv,
-			      struct mcba_usb_msg *usb_msg);
-static void mcba_usb_xmit_read_fw_ver(struct mcba_priv *priv, u8 pic);
-static void mcba_usb_xmit_termination(struct mcba_priv *priv, u8 termination);
-static inline void mcba_init_ctx(struct mcba_priv *priv);
+static void udt1cri_usb_xmit_cmd(struct udt1cri_priv *priv,
+			      struct udt1cri_usb_msg *usb_msg);
+static void udt1cri_usb_xmit_read_fw_ver(struct udt1cri_priv *priv, u8 pic);
+static void udt1cri_usb_xmit_termination(struct udt1cri_priv *priv, u8 termination);
+static inline void udt1cri_init_ctx(struct udt1cri_priv *priv);
 
 static ssize_t termination_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
 	struct net_device *netdev = to_net_dev(dev);
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 
 	return sprintf(buf, "%hhu\n", priv->termination_state);
 }
@@ -520,7 +520,7 @@ static ssize_t termination_store(struct device *dev,
 				 const char *buf, size_t count)
 {
 	struct net_device *netdev = to_net_dev(dev);
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 	int tmp = -1;
 	int ret = -1;
 
@@ -528,7 +528,7 @@ static ssize_t termination_store(struct device *dev,
 
 	if ((ret == 0) && ((tmp == 0) || (tmp == 1))) {
 		priv->termination_state = tmp;
-		mcba_usb_xmit_termination(priv, priv->termination_state);
+		udt1cri_usb_xmit_termination(priv, priv->termination_state);
 	}
 
 	return count;
@@ -542,8 +542,8 @@ static struct device_attribute termination_attr = {
 	.store	= termination_store
 };
 
-static void mcba_usb_process_can(struct mcba_priv *priv,
-				 struct mcba_usb_msg_can *msg)
+static void udt1cri_usb_process_can(struct udt1cri_priv *priv,
+				 struct udt1cri_usb_msg_can *msg)
 {
 	struct can_frame *cf;
 	struct sk_buff *skb;
@@ -553,15 +553,15 @@ static void mcba_usb_process_can(struct mcba_priv *priv,
 	if (!skb)
 		return;
 
-	if (MCBA_RX_IS_EXID(msg))
-		cf->can_id = MCBA_CAN_GET_EID(msg);
+	if (UDT1CRI_RX_IS_EXID(msg))
+		cf->can_id = UDT1CRI_CAN_GET_EID(msg);
 	else
-		cf->can_id = MCBA_CAN_GET_SID(msg);
+		cf->can_id = UDT1CRI_CAN_GET_SID(msg);
 
-	if (MCBA_RX_IS_RTR(msg))
-		cf->can_id |= MCBA_CAN_RTR_MASK;
+	if (UDT1CRI_RX_IS_RTR(msg))
+		cf->can_id |= UDT1CRI_CAN_RTR_MASK;
 
-	cf->can_dlc = msg->dlc & MCBA_DLC_MASK;
+	cf->can_dlc = msg->dlc & UDT1CRI_DLC_MASK;
 
 	memcpy(cf->data, msg->data, cf->can_dlc);
 
@@ -570,10 +570,10 @@ static void mcba_usb_process_can(struct mcba_priv *priv,
 	netif_rx(skb);
 }
 
-static void mcba_usb_process_ka_usb(struct mcba_priv *priv,
-				    struct mcba_usb_msg_ka_usb *msg)
+static void udt1cri_usb_process_ka_usb(struct udt1cri_priv *priv,
+				    struct udt1cri_usb_msg_ka_usb *msg)
 {
-	if (unlikely(MCBA_IS_USB_DEBUG())) {
+	if (unlikely(UDT1CRI_IS_USB_DEBUG())) {
 		netdev_info(priv->netdev,
 			    "USB_KA: termination %hhu, ver_maj %hhu, soft_min %hhu\n",
 			    msg->termination_state, msg->soft_ver_major,
@@ -591,10 +591,10 @@ static void mcba_usb_process_ka_usb(struct mcba_priv *priv,
 	priv->termination_state = msg->termination_state;
 }
 
-static void mcba_usb_process_ka_can(struct mcba_priv *priv,
-				    struct mcba_usb_msg_ka_can *msg)
+static void udt1cri_usb_process_ka_can(struct udt1cri_priv *priv,
+				    struct udt1cri_usb_msg_ka_can *msg)
 {
-	if (unlikely(MCBA_IS_CAN_DEBUG())) {
+	if (unlikely(UDT1CRI_IS_CAN_DEBUG())) {
 		netdev_info(priv->netdev,
 			    "CAN_KA: tx_err_cnt %hhu, rx_err_cnt %hhu, rx_buff_ovfl %hhu, tx_bus_off %hhu, can_bitrate %hu, rx_lost %hu, can_stat %hhu, soft_ver %hhu.%hhu, debug_mode %hhu, test_complete %hhu, test_result %hhu\n",
 			    msg->tx_err_cnt, msg->rx_err_cnt, msg->rx_buff_ovfl,
@@ -619,22 +619,22 @@ static void mcba_usb_process_ka_can(struct mcba_priv *priv,
 	priv->bec.rxerr = msg->rx_err_cnt;
 }
 
-static void mcba_usb_process_rx(struct mcba_priv *priv,
-				struct mcba_usb_msg *msg)
+static void udt1cri_usb_process_rx(struct udt1cri_priv *priv,
+				struct udt1cri_usb_msg *msg)
 {
 	switch (msg->cmd_id) {
 	case MBCA_CMD_I_AM_ALIVE_FROM_CAN:
-		mcba_usb_process_ka_can(priv,
-					(struct mcba_usb_msg_ka_can *)msg);
+		udt1cri_usb_process_ka_can(priv,
+					(struct udt1cri_usb_msg_ka_can *)msg);
 		break;
 
 	case MBCA_CMD_I_AM_ALIVE_FROM_USB:
-		mcba_usb_process_ka_usb(priv,
-					(struct mcba_usb_msg_ka_usb *)msg);
+		udt1cri_usb_process_ka_usb(priv,
+					(struct udt1cri_usb_msg_ka_usb *)msg);
 		break;
 
 	case MBCA_CMD_RECEIVE_MESSAGE:
-		mcba_usb_process_can(priv, (struct mcba_usb_msg_can *)msg);
+		udt1cri_usb_process_can(priv, (struct udt1cri_usb_msg_can *)msg);
 		break;
 
 	case MBCA_CMD_NOTHING_TO_SEND:
@@ -658,9 +658,9 @@ static void mcba_usb_process_rx(struct mcba_priv *priv,
  *
  * Check urb status, call read function and resubmit urb read operation.
  */
-static void mcba_usb_read_bulk_callback(struct urb *urb)
+static void udt1cri_usb_read_bulk_callback(struct urb *urb)
 {
-	struct mcba_priv *priv = urb->context;
+	struct udt1cri_priv *priv = urb->context;
 	struct net_device *netdev;
 	int retval;
 	int pos = 0;
@@ -686,25 +686,25 @@ static void mcba_usb_read_bulk_callback(struct urb *urb)
 	}
 
 	while (pos < urb->actual_length) {
-		struct mcba_usb_msg *msg;
+		struct udt1cri_usb_msg *msg;
 
-		if (pos + sizeof(struct mcba_usb_msg) > urb->actual_length) {
+		if (pos + sizeof(struct udt1cri_usb_msg) > urb->actual_length) {
 			netdev_err(priv->netdev, "format error\n");
 			break;
 		}
 
-		msg = (struct mcba_usb_msg *)(urb->transfer_buffer + pos);
-		mcba_usb_process_rx(priv, msg);
+		msg = (struct udt1cri_usb_msg *)(urb->transfer_buffer + pos);
+		udt1cri_usb_process_rx(priv, msg);
 
-		pos += sizeof(struct mcba_usb_msg);
+		pos += sizeof(struct udt1cri_usb_msg);
 	}
 
 resubmit_urb:
 
 	usb_fill_bulk_urb(urb, priv->udev,
-			  usb_rcvbulkpipe(priv->udev, MCBA_USB_EP_OUT),
-			  urb->transfer_buffer, MCBA_USB_RX_BUFF_SIZE,
-			  mcba_usb_read_bulk_callback, priv);
+			  usb_rcvbulkpipe(priv->udev, UDT1CRI_USB_EP_OUT),
+			  urb->transfer_buffer, UDT1CRI_USB_RX_BUFF_SIZE,
+			  udt1cri_usb_read_bulk_callback, priv);
 
 	retval = usb_submit_urb(urb, GFP_ATOMIC);
 
@@ -716,12 +716,12 @@ resubmit_urb:
 }
 
 /* Start USB device */
-static int mcba_usb_start(struct mcba_priv *priv)
+static int udt1cri_usb_start(struct udt1cri_priv *priv)
 {
 	struct net_device *netdev = priv->netdev;
 	int err, i;
 
-	for (i = 0; i < MCBA_MAX_RX_URBS; i++) {
+	for (i = 0; i < UDT1CRI_MAX_RX_URBS; i++) {
 		struct urb *urb = NULL;
 		u8 *buf;
 
@@ -733,7 +733,7 @@ static int mcba_usb_start(struct mcba_priv *priv)
 			break;
 		}
 
-		buf = usb_alloc_coherent(priv->udev, MCBA_USB_RX_BUFF_SIZE,
+		buf = usb_alloc_coherent(priv->udev, UDT1CRI_USB_RX_BUFF_SIZE,
 					 GFP_KERNEL,
 					 &urb->transfer_dma);
 		if (!buf) {
@@ -745,16 +745,16 @@ static int mcba_usb_start(struct mcba_priv *priv)
 
 		usb_fill_bulk_urb(urb, priv->udev,
 				  usb_rcvbulkpipe(priv->udev,
-						  MCBA_USB_EP_IN),
-				  buf, MCBA_USB_RX_BUFF_SIZE,
-				  mcba_usb_read_bulk_callback, priv);
+						  UDT1CRI_USB_EP_IN),
+				  buf, UDT1CRI_USB_RX_BUFF_SIZE,
+				  udt1cri_usb_read_bulk_callback, priv);
 		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 		usb_anchor_urb(urb, &priv->rx_submitted);
 
 		err = usb_submit_urb(urb, GFP_KERNEL);
 		if (err) {
 			usb_unanchor_urb(urb);
-			usb_free_coherent(priv->udev, MCBA_USB_RX_BUFF_SIZE,
+			usb_free_coherent(priv->udev, UDT1CRI_USB_RX_BUFF_SIZE,
 					  buf, urb->transfer_dma);
 			usb_free_urb(urb);
 			break;
@@ -771,33 +771,33 @@ static int mcba_usb_start(struct mcba_priv *priv)
 	}
 
 	/* Warn if we've couldn't transmit all the URBs */
-	if (i < MCBA_MAX_RX_URBS)
+	if (i < UDT1CRI_MAX_RX_URBS)
 		netdev_warn(netdev, "rx performance may be slow\n");
 
 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
 
-	mcba_init_ctx(priv);
-	mcba_usb_xmit_read_fw_ver(priv, MCBA_VER_REQ_USB);
-	mcba_usb_xmit_read_fw_ver(priv, MCBA_VER_REQ_CAN);
+	udt1cri_init_ctx(priv);
+	udt1cri_usb_xmit_read_fw_ver(priv, UDT1CRI_VER_REQ_USB);
+	udt1cri_usb_xmit_read_fw_ver(priv, UDT1CRI_VER_REQ_CAN);
 
 	return err;
 }
 
-static inline void mcba_init_ctx(struct mcba_priv *priv)
+static inline void udt1cri_init_ctx(struct udt1cri_priv *priv)
 {
 	int i = 0;
 
-	for (i = 0; i < MCBA_MAX_TX_URBS; i++)
-		priv->tx_context[i].ndx = MCBA_CTX_FREE;
+	for (i = 0; i < UDT1CRI_MAX_TX_URBS; i++)
+		priv->tx_context[i].ndx = UDT1CRI_CTX_FREE;
 }
 
-static inline struct mcba_usb_ctx *mcba_usb_get_free_ctx(struct mcba_priv *priv)
+static inline struct udt1cri_usb_ctx *udt1cri_usb_get_free_ctx(struct udt1cri_priv *priv)
 {
 	int i = 0;
-	struct mcba_usb_ctx *ctx = 0;
+	struct udt1cri_usb_ctx *ctx = 0;
 
-	for (i = 0; i < MCBA_MAX_TX_URBS; i++) {
-		if (priv->tx_context[i].ndx == MCBA_CTX_FREE) {
+	for (i = 0; i < UDT1CRI_MAX_TX_URBS; i++) {
+		if (priv->tx_context[i].ndx == UDT1CRI_CTX_FREE) {
 			ctx = &priv->tx_context[i];
 			ctx->ndx = i;
 			ctx->priv = priv;
@@ -808,17 +808,17 @@ static inline struct mcba_usb_ctx *mcba_usb_get_free_ctx(struct mcba_priv *priv)
 	return ctx;
 }
 
-static inline void mcba_usb_free_ctx(struct mcba_usb_ctx *ctx)
+static inline void udt1cri_usb_free_ctx(struct udt1cri_usb_ctx *ctx)
 {
-	ctx->ndx = MCBA_CTX_FREE;
+	ctx->ndx = UDT1CRI_CTX_FREE;
 	ctx->priv = 0;
 	ctx->dlc = 0;
 	ctx->can = false;
 }
 
-static void mcba_usb_write_bulk_callback(struct urb *urb)
+static void udt1cri_usb_write_bulk_callback(struct urb *urb)
 {
-	struct mcba_usb_ctx *ctx = urb->context;
+	struct udt1cri_usb_ctx *ctx = urb->context;
 	struct net_device *netdev;
 
 	WARN_ON(!ctx);
@@ -846,59 +846,59 @@ static void mcba_usb_write_bulk_callback(struct urb *urb)
 			    urb->status);
 
 	/* Release context */
-	mcba_usb_free_ctx(ctx);
+	udt1cri_usb_free_ctx(ctx);
 }
 
 /* Send data to device */
-static netdev_tx_t mcba_usb_start_xmit(struct sk_buff *skb,
+static netdev_tx_t udt1cri_usb_start_xmit(struct sk_buff *skb,
 				       struct net_device *netdev)
 {
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 	struct can_frame *cf = (struct can_frame *)skb->data;
-	struct mcba_usb_msg_can usb_msg;
+	struct udt1cri_usb_msg_can usb_msg;
 
 	usb_msg.cmd_id = MBCA_CMD_TRANSMIT_MESSAGE_EV;
 	memcpy(usb_msg.data, cf->data, sizeof(usb_msg.data));
 
-	if (MCBA_TX_IS_EXID(cf)) {
-		usb_msg.sidl = MCBA_SET_E_SIDL(cf->can_id);
-		usb_msg.sidh = MCBA_SET_E_SIDH(cf->can_id);
-		usb_msg.eidl = MCBA_SET_EIDL(cf->can_id);
-		usb_msg.eidh = MCBA_SET_EIDH(cf->can_id);
+	if (UDT1CRI_TX_IS_EXID(cf)) {
+		usb_msg.sidl = UDT1CRI_SET_E_SIDL(cf->can_id);
+		usb_msg.sidh = UDT1CRI_SET_E_SIDH(cf->can_id);
+		usb_msg.eidl = UDT1CRI_SET_EIDL(cf->can_id);
+		usb_msg.eidh = UDT1CRI_SET_EIDH(cf->can_id);
 	} else {
-		usb_msg.sidl = MCBA_SET_S_SIDL(cf->can_id);
-		usb_msg.sidh = MCBA_SET_S_SIDH(cf->can_id);
+		usb_msg.sidl = UDT1CRI_SET_S_SIDL(cf->can_id);
+		usb_msg.sidh = UDT1CRI_SET_S_SIDH(cf->can_id);
 		usb_msg.eidl = 0;
 		usb_msg.eidh = 0;
 	}
 
 	usb_msg.dlc = cf->can_dlc;
 
-	if (MCBA_TX_IS_RTR(cf))
-		usb_msg.dlc |= MCBA_DLC_RTR_MASK;
+	if (UDT1CRI_TX_IS_RTR(cf))
+		usb_msg.dlc |= UDT1CRI_DLC_RTR_MASK;
 
-	return mcba_usb_xmit(priv, (struct mcba_usb_msg *)&usb_msg, skb);
+	return udt1cri_usb_xmit(priv, (struct udt1cri_usb_msg *)&usb_msg, skb);
 }
 
 /* Send data to device */
-static void mcba_usb_xmit_cmd(struct mcba_priv *priv,
-			      struct mcba_usb_msg *usb_msg)
+static void udt1cri_usb_xmit_cmd(struct udt1cri_priv *priv,
+			      struct udt1cri_usb_msg *usb_msg)
 {
-	mcba_usb_xmit(priv, usb_msg, 0);
+	udt1cri_usb_xmit(priv, usb_msg, 0);
 }
 
 /* Send data to device */
-static netdev_tx_t mcba_usb_xmit(struct mcba_priv *priv,
-				 struct mcba_usb_msg *usb_msg,
+static netdev_tx_t udt1cri_usb_xmit(struct udt1cri_priv *priv,
+				 struct udt1cri_usb_msg *usb_msg,
 				 struct sk_buff *skb)
 {
 	struct net_device_stats *stats = &priv->netdev->stats;
-	struct mcba_usb_ctx *ctx = 0;
+	struct udt1cri_usb_ctx *ctx = 0;
 	struct urb *urb;
 	u8 *buf;
 	int err;
 
-	ctx = mcba_usb_get_free_ctx(priv);
+	ctx = udt1cri_usb_get_free_ctx(priv);
 	if (!ctx) {
 		/* Slow down tx path */
 		netif_stop_queue(priv->netdev);
@@ -907,8 +907,8 @@ static netdev_tx_t mcba_usb_xmit(struct mcba_priv *priv,
 	}
 
 	if (skb) {
-		ctx->dlc = ((struct mcba_usb_msg_can *)usb_msg)->dlc
-				& MCBA_DLC_MASK;
+		ctx->dlc = ((struct udt1cri_usb_msg_can *)usb_msg)->dlc
+				& UDT1CRI_DLC_MASK;
 		can_put_echo_skb(skb, priv->netdev, ctx->ndx);
 		ctx->can = true;
 	} else {
@@ -922,18 +922,18 @@ static netdev_tx_t mcba_usb_xmit(struct mcba_priv *priv,
 		goto nomem;
 	}
 
-	buf = usb_alloc_coherent(priv->udev, MCBA_USB_TX_BUFF_SIZE, GFP_ATOMIC,
+	buf = usb_alloc_coherent(priv->udev, UDT1CRI_USB_TX_BUFF_SIZE, GFP_ATOMIC,
 				 &urb->transfer_dma);
 	if (!buf) {
 		netdev_err(priv->netdev, "No memory left for USB buffer\n");
 		goto nomembuf;
 	}
 
-	memcpy(buf, usb_msg, MCBA_USB_TX_BUFF_SIZE);
+	memcpy(buf, usb_msg, UDT1CRI_USB_TX_BUFF_SIZE);
 
 	usb_fill_bulk_urb(urb, priv->udev,
-			  usb_sndbulkpipe(priv->udev, MCBA_USB_EP_OUT), buf,
-			  MCBA_USB_TX_BUFF_SIZE, mcba_usb_write_bulk_callback,
+			  usb_sndbulkpipe(priv->udev, UDT1CRI_USB_EP_OUT), buf,
+			  UDT1CRI_USB_TX_BUFF_SIZE, udt1cri_usb_write_bulk_callback,
 			  ctx);
 
 	urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
@@ -952,7 +952,7 @@ static netdev_tx_t mcba_usb_xmit(struct mcba_priv *priv,
 
 failed:
 	usb_unanchor_urb(urb);
-	usb_free_coherent(priv->udev, MCBA_USB_TX_BUFF_SIZE, buf,
+	usb_free_coherent(priv->udev, UDT1CRI_USB_TX_BUFF_SIZE, buf,
 			  urb->transfer_dma);
 
 	if (err == -ENODEV)
@@ -971,39 +971,39 @@ nomem:
 	return NETDEV_TX_OK;
 }
 
-static void mcba_usb_xmit_change_bitrate(struct mcba_priv *priv, u16 bitrate)
+static void udt1cri_usb_xmit_change_bitrate(struct udt1cri_priv *priv, u16 bitrate)
 {
-	struct mcba_usb_msg_change_bitrate usb_msg;
+	struct udt1cri_usb_msg_change_bitrate usb_msg;
 
 	usb_msg.cmd_id =  MBCA_CMD_CHANGE_BIT_RATE;
 	usb_msg.bitrate_hi = (0xff00 & bitrate) >> 8;
 	usb_msg.bitrate_lo = (0xff & bitrate);
 
-	mcba_usb_xmit_cmd(priv, (struct mcba_usb_msg *)&usb_msg);
+	udt1cri_usb_xmit_cmd(priv, (struct udt1cri_usb_msg *)&usb_msg);
 }
 
-static void mcba_usb_xmit_read_fw_ver(struct mcba_priv *priv, u8 pic)
+static void udt1cri_usb_xmit_read_fw_ver(struct udt1cri_priv *priv, u8 pic)
 {
-	struct mcba_usb_msg_fw_ver usb_msg;
+	struct udt1cri_usb_msg_fw_ver usb_msg;
 
 	usb_msg.cmd_id = MBCA_CMD_READ_FW_VERSION;
 	usb_msg.pic = pic;
 
-	mcba_usb_xmit_cmd(priv, (struct mcba_usb_msg *)&usb_msg);
+	udt1cri_usb_xmit_cmd(priv, (struct udt1cri_usb_msg *)&usb_msg);
 }
 
-static void mcba_usb_xmit_termination(struct mcba_priv *priv, u8 termination)
+static void udt1cri_usb_xmit_termination(struct udt1cri_priv *priv, u8 termination)
 {
-	struct mcba_usb_msg_terminaton usb_msg;
+	struct udt1cri_usb_msg_terminaton usb_msg;
 
 	usb_msg.cmd_id = MBCA_CMD_SETUP_TERMINATION_RESISTANCE;
 	usb_msg.termination = termination;
 
-	mcba_usb_xmit_cmd(priv, (struct mcba_usb_msg *)&usb_msg);
+	udt1cri_usb_xmit_cmd(priv, (struct udt1cri_usb_msg *)&usb_msg);
 }
 
 /* Open USB device */
-static int mcba_usb_open(struct net_device *netdev)
+static int udt1cri_usb_open(struct net_device *netdev)
 {
 	int err;
 
@@ -1019,23 +1019,23 @@ static int mcba_usb_open(struct net_device *netdev)
 	return 0;
 }
 
-static void mcba_urb_unlink(struct mcba_priv *priv)
+static void udt1cri_urb_unlink(struct udt1cri_priv *priv)
 {
 	usb_kill_anchored_urbs(&priv->rx_submitted);
 	usb_kill_anchored_urbs(&priv->tx_submitted);
 }
 
 /* Close USB device */
-static int mcba_usb_close(struct net_device *netdev)
+static int udt1cri_usb_close(struct net_device *netdev)
 {
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 
 	priv->can.state = CAN_STATE_STOPPED;
 
 	netif_stop_queue(netdev);
 
 	/* Stop polling */
-	mcba_urb_unlink(priv);
+	udt1cri_urb_unlink(priv);
 
 	close_candev(netdev);
 
@@ -1049,15 +1049,15 @@ static int mcba_usb_close(struct net_device *netdev)
  * Maybe we should leave this function empty, because the device
  * set mode variable with open command.
  */
-static int mcba_net_set_mode(struct net_device *netdev, enum can_mode mode)
+static int udt1cri_net_set_mode(struct net_device *netdev, enum can_mode mode)
 {
 	return 0;
 }
 
-static int mcba_net_get_berr_counter(const struct net_device *netdev,
+static int udt1cri_net_get_berr_counter(const struct net_device *netdev,
 				     struct can_berr_counter *bec)
 {
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 
 	bec->txerr = priv->bec.txerr;
 	bec->rxerr = priv->bec.rxerr;
@@ -1065,20 +1065,20 @@ static int mcba_net_get_berr_counter(const struct net_device *netdev,
 	return 0;
 }
 
-static const struct net_device_ops mcba_netdev_ops = {
-	.ndo_open = mcba_usb_open,
-	.ndo_stop = mcba_usb_close,
-	.ndo_start_xmit = mcba_usb_start_xmit
+static const struct net_device_ops udt1cri_netdev_ops = {
+	.ndo_open = udt1cri_usb_open,
+	.ndo_stop = udt1cri_usb_close,
+	.ndo_start_xmit = udt1cri_usb_start_xmit
 };
 
 /* Microchip CANBUS has hardcoded bittiming values by default.
  * This function sends request via USB to change the speed and align bittiming
  * values for presentation purposes only
  */
-static int mcba_net_set_bittiming(struct net_device *netdev)
+static int udt1cri_net_set_bittiming(struct net_device *netdev)
 {
 	u8 i;
-	struct mcba_priv *priv = netdev_priv(netdev);
+	struct udt1cri_priv *priv = netdev_priv(netdev);
 	struct can_bittiming *bt = &priv->can.bittiming;
 	const struct bitrate_settings *settings = 0;
 	const u8 setting_cnt = sizeof(br_settings) /
@@ -1096,7 +1096,7 @@ static int mcba_net_set_bittiming(struct net_device *netdev)
 					    bt->phase_seg1 + bt->phase_seg2) *
 					    bt->tq);
 
-		mcba_usb_xmit_change_bitrate(priv, settings->kbps);
+		udt1cri_usb_xmit_change_bitrate(priv, settings->kbps);
 	} else {
 		netdev_err(netdev, "Unsupported bittrate (%u). Use one of: 20000, 33333, 50000, 80000, 83333, 100000, 125000, 150000, 175000, 200000, 225000, 250000, 275000, 300000, 500000, 625000, 800000, 1000000\n",
 			   bt->bitrate);
@@ -1107,17 +1107,17 @@ static int mcba_net_set_bittiming(struct net_device *netdev)
 	return 0;
 }
 
-static int mcba_usb_probe(struct usb_interface *intf,
+static int udt1cri_usb_probe(struct usb_interface *intf,
 			  const struct usb_device_id *id)
 {
 	struct net_device *netdev;
-	struct mcba_priv *priv;
+	struct udt1cri_priv *priv;
 	int err = -ENOMEM;
 	struct usb_device *usbdev = interface_to_usbdev(intf);
 
-	dev_info(&intf->dev, "Microchip CAN BUS analizer connected\n");
+	dev_info(&intf->dev, "UniSwarm UDT1CRI CAN debugger connected\n");
 
-	netdev = alloc_candev(sizeof(struct mcba_priv), MCBA_MAX_TX_URBS);
+	netdev = alloc_candev(sizeof(struct udt1cri_priv), UDT1CRI_MAX_TX_URBS);
 	if (!netdev) {
 		dev_err(&intf->dev, "Couldn't alloc candev\n");
 		return -ENOMEM;
@@ -1135,7 +1135,7 @@ static int mcba_usb_probe(struct usb_interface *intf,
 
 	usb_set_intfdata(intf, priv);
 
-	err = mcba_usb_start(priv);
+	err = udt1cri_usb_start(priv);
 	if (err) {
 		if (err == -ENODEV)
 			netif_device_detach(priv->netdev);
@@ -1147,16 +1147,16 @@ static int mcba_usb_probe(struct usb_interface *intf,
 
 	/* Init CAN device */
 	priv->can.state = CAN_STATE_STOPPED;
-	priv->can.clock.freq = MCBA_CAN_CLOCK;
-	priv->can.bittiming_const = &mcba_bittiming_const;
-	priv->can.do_set_mode = mcba_net_set_mode;
-	priv->can.do_get_berr_counter = mcba_net_get_berr_counter;
-	priv->can.do_set_bittiming = mcba_net_set_bittiming;
+	priv->can.clock.freq = UDT1CRI_CAN_CLOCK;
+	priv->can.bittiming_const = &udt1cri_bittiming_const;
+	priv->can.do_set_mode = udt1cri_net_set_mode;
+	priv->can.do_get_berr_counter = udt1cri_net_get_berr_counter;
+	priv->can.do_set_bittiming = udt1cri_net_set_bittiming;
 	priv->can.ctrlmode_supported = CAN_CTRLMODE_LOOPBACK |
 			CAN_CTRLMODE_LISTENONLY |
 			CAN_CTRLMODE_ONE_SHOT;
 
-	netdev->netdev_ops = &mcba_netdev_ops;
+	netdev->netdev_ops = &udt1cri_netdev_ops;
 
 	netdev->flags |= IFF_ECHO; /* we support local echo */
 
@@ -1185,9 +1185,9 @@ cleanup_candev:
 }
 
 /* Called by the usb core when driver is unloaded or device is removed */
-static void mcba_usb_disconnect(struct usb_interface *intf)
+static void udt1cri_usb_disconnect(struct usb_interface *intf)
 {
-	struct mcba_priv *priv = usb_get_intfdata(intf);
+	struct udt1cri_priv *priv = usb_get_intfdata(intf);
 
 	device_remove_file(&priv->netdev->dev, &termination_attr);
 
@@ -1199,19 +1199,19 @@ static void mcba_usb_disconnect(struct usb_interface *intf)
 		unregister_candev(priv->netdev);
 		free_candev(priv->netdev);
 
-		mcba_urb_unlink(priv);
+		udt1cri_urb_unlink(priv);
 	}
 }
 
-static struct usb_driver mcba_usb_driver = {
-	.name =		MCBA_MODULE_NAME,
-	.probe =	mcba_usb_probe,
-	.disconnect =	mcba_usb_disconnect,
-	.id_table =	mcba_usb_table,
+static struct usb_driver udt1cri_usb_driver = {
+	.name =		UDT1CRI_MODULE_NAME,
+	.probe =	udt1cri_usb_probe,
+	.disconnect =	udt1cri_usb_disconnect,
+	.id_table =	udt1cri_usb_table,
 };
 
-module_usb_driver(mcba_usb_driver);
+module_usb_driver(udt1cri_usb_driver);
 
 MODULE_AUTHOR("Remigiusz Kołłątaj <remigiusz.kollataj@mobica.com>");
-MODULE_DESCRIPTION("SocketCAN driver for Microchip CAN BUS Analyzer Tool");
+MODULE_DESCRIPTION("SocketCAN driver for UniSwarm UDT1CRI CAN debugger");
 MODULE_LICENSE("GPL v2");
