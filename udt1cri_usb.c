@@ -1,6 +1,6 @@
-/* SocketCAN driver for Microchip CAN BUS Analyzer Tool
+/* SocketCAN driver for UniSwarm UDT1CRI CAN debugger
  *
- * Copyright (C) 2016 Mobica Limited
+ * Copyright (C) 2018 UniSwarm
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
@@ -15,128 +15,66 @@
  * with this program.
  *
  * This driver is inspired by the 4.6.2 version of net/can/usb/usb_8dev.c
+ * and net/can/usb/mcba_usb.c
  */
 
-#include <linux/signal.h>
-#include <linux/slab.h>
-#include <linux/module.h>
-#include <linux/netdevice.h>
-#include <linux/usb.h>
-
+#include <asm/unaligned.h>
 #include <linux/can.h>
 #include <linux/can/dev.h>
 #include <linux/can/error.h>
+#include <linux/can/led.h>
+#include <linux/module.h>
+#include <linux/netdevice.h>
+#include <linux/signal.h>
+#include <linux/slab.h>
+#include <linux/usb.h>
 
 /* vendor and product id */
-#define UDT1CRI_MODULE_NAME         "udt1cr-i_usb"
-#define UDT1CRI_VENDOR_ID           0x04d8
-#define UDT1CRI_PRODUCT_ID          0xee0c
+#define UDT1CRI_MODULE_NAME "udt1cri_usb"
+#define UDT1CRI_VENDOR_ID 0x04d8
+#define UDT1CRI_PRODUCT_ID 0xee0c
 
 /* driver constants */
-#define UDT1CRI_MAX_RX_URBS         20
-#define UDT1CRI_MAX_TX_URBS         20
-#define UDT1CRI_CTX_FREE            UDT1CRI_MAX_TX_URBS
+#define UDT1CRI_MAX_RX_URBS 20
+#define UDT1CRI_MAX_TX_URBS 20
+#define UDT1CRI_CTX_FREE UDT1CRI_MAX_TX_URBS
 
 /* RX buffer must be bigger than msg size since at the
  * beggining USB messages are stacked.
  */
-#define UDT1CRI_USB_RX_BUFF_SIZE    64
-#define UDT1CRI_USB_TX_BUFF_SIZE    (sizeof(struct udt1cri_usb_msg))
+#define UDT1CRI_USB_RX_BUFF_SIZE 512
+#define UDT1CRI_USB_TX_BUFF_SIZE (sizeof(struct udt1cri_usb_msg))
 
 /* UDT1CRI endpoint numbers */
-#define UDT1CRI_USB_EP_IN           1
-#define UDT1CRI_USB_EP_OUT          1
+#define UDT1CRI_USB_EP_IN 1
+#define UDT1CRI_USB_EP_OUT 1
 
-/* Not required by driver itself as CANBUS is USB based
- * Used internally by candev for bitrate calculation
- */
-#define UDT1CRI_CAN_CLOCK           40000000
+#define UDT1CRI_CAN_CLOCK 40000000
 
 /* Microchip command id */
-#define MBCA_CMD_RECEIVE_MESSAGE                0xE3
-#define MBCA_CMD_I_AM_ALIVE_FROM_CAN            0xF5
-#define MBCA_CMD_I_AM_ALIVE_FROM_USB            0xF7
-#define MBCA_CMD_CHANGE_BIT_RATE                0xA1
-#define MBCA_CMD_TRANSMIT_MESSAGE_EV            0xA3
-#define MBCA_CMD_SETUP_TERMINATION_RESISTANCE   0xA8
-#define MBCA_CMD_READ_FW_VERSION                0xA9
-#define MBCA_CMD_NOTHING_TO_SEND                0xFF
-#define MBCA_CMD_TRANSMIT_MESSAGE_RSP           0xE2
+#define UDT1CRI_CMD_RECEIVE_MESSAGE 0xE3
+#define UDT1CRI_CMD_I_AM_ALIVE_FROM_CAN 0xF5
+#define UDT1CRI_CMD_I_AM_ALIVE_FROM_USB 0xF7
+#define UDT1CRI_CMD_CHANGE_BIT_RATE 0xA1
+#define UDT1CRI_CMD_TRANSMIT_MESSAGE_EV 0xA3
+#define UDT1CRI_CMD_SETUP_TERMINATION_RESISTANCE 0xA8
+#define UDT1CRI_CMD_READ_FW_VERSION 0xA9
+#define UDT1CRI_CMD_NOTHING_TO_SEND 0xFF
+#define UDT1CRI_CMD_TRANSMIT_MESSAGE_RSP 0xE2
 
-/* debug module parameter handling */
-#define UDT1CRI_PARAM_DEBUG_DISABLE    0
-#define UDT1CRI_PARAM_DEBUG_USB        1
-#define UDT1CRI_PARAM_DEBUG_CAN        2
-#define UDT1CRI_IS_USB_DEBUG()         (debug & UDT1CRI_PARAM_DEBUG_USB)
-#define UDT1CRI_IS_CAN_DEBUG()         (debug & UDT1CRI_PARAM_DEBUG_CAN)
+#define UDT1CRI_VER_REQ_USB 1
+#define UDT1CRI_VER_REQ_CAN 2
 
-#define UDT1CRI_VER_REQ_USB             1
-#define UDT1CRI_VER_REQ_CAN             2
-
-#define UDT1CRI_CAN_S_SID0_SID2_MASK    0x7
-#define UDT1CRI_CAN_S_SID3_SID10_MASK   0x7F8
-#define UDT1CRI_CAN_S_SID3_SID10_SHIFT  3
-
-#define UDT1CRI_CAN_EID0_EID7_MASK      0xff
-#define UDT1CRI_CAN_EID8_EID15_MASK     0xff00
-#define UDT1CRI_CAN_EID16_EID17_MASK    0x30000
-#define UDT1CRI_CAN_E_SID0_SID2_MASK    0x1c0000
-#define UDT1CRI_CAN_E_SID3_SID10_MASK   0x1fe00000
-#define UDT1CRI_CAN_EID8_EID15_SHIFT    8
-#define UDT1CRI_CAN_EID16_EID17_SHIFT   16
-#define UDT1CRI_CAN_E_SID0_SID2_SHIFT   18
-#define UDT1CRI_CAN_E_SID3_SID10_SHIFT  21
-
-#define UDT1CRI_SIDL_SID0_SID2_MASK     0xe0
-#define UDT1CRI_SIDL_EXID_MASK          0x8
-#define UDT1CRI_SIDL_EID16_EID17_MASK   0x3
-#define UDT1CRI_SIDL_SID0_SID2_SHIFT    5
-
-#define UDT1CRI_DLC_MASK                0xf
-#define UDT1CRI_DLC_RTR_MASK            0x40
+#define UDT1CRI_DLC_MASK 0xf
+#define UDT1CRI_DLC_RTR_MASK 0x40
 
 #define UDT1CRI_CAN_RTR_MASK            0x40000000
 #define UDT1CRI_CAN_EXID_MASK           0x80000000
 
-#define UDT1CRI_SET_S_SIDL(can_id)\
-(((can_id) & UDT1CRI_CAN_S_SID0_SID2_MASK) << UDT1CRI_SIDL_SID0_SID2_SHIFT)
-
-#define UDT1CRI_SET_E_SIDL(can_id)\
-(((((can_id) & UDT1CRI_CAN_E_SID0_SID2_MASK) >> UDT1CRI_CAN_E_SID0_SID2_SHIFT)\
-<< UDT1CRI_SIDL_SID0_SID2_SHIFT) |\
-(((can_id) & UDT1CRI_CAN_EID16_EID17_MASK) >> UDT1CRI_CAN_EID16_EID17_SHIFT) |\
-UDT1CRI_SIDL_EXID_MASK)
-
-#define UDT1CRI_SET_S_SIDH(can_id)\
-(((can_id) & UDT1CRI_CAN_S_SID3_SID10_MASK) >> UDT1CRI_CAN_S_SID3_SID10_SHIFT)
-
-#define UDT1CRI_SET_E_SIDH(can_id)\
-(((can_id) & UDT1CRI_CAN_E_SID3_SID10_MASK) >> UDT1CRI_CAN_E_SID3_SID10_SHIFT)
-
-#define UDT1CRI_SET_EIDL(can_id)\
-((can_id) & UDT1CRI_CAN_EID0_EID7_MASK)
-
-#define UDT1CRI_SET_EIDH(can_id)\
-(((can_id) & UDT1CRI_CAN_EID8_EID15_MASK) >> UDT1CRI_CAN_EID8_EID15_SHIFT)
-
-#define UDT1CRI_CAN_GET_SID(usb_msg)\
-((((usb_msg)->sidl & UDT1CRI_SIDL_SID0_SID2_MASK) >> UDT1CRI_SIDL_SID0_SID2_SHIFT) |\
-((usb_msg)->sidh << UDT1CRI_CAN_S_SID3_SID10_SHIFT))
-
-#define UDT1CRI_CAN_GET_EID(usb_msg)\
-((((usb_msg)->sidh << UDT1CRI_CAN_E_SID3_SID10_SHIFT) |\
-(((usb_msg)->sidl & UDT1CRI_SIDL_SID0_SID2_MASK) >> UDT1CRI_SIDL_SID0_SID2_SHIFT) \
-<< UDT1CRI_CAN_E_SID0_SID2_SHIFT) |\
-(((usb_msg)->sidl & UDT1CRI_SIDL_EID16_EID17_MASK) \
-<< UDT1CRI_CAN_EID16_EID17_SHIFT) |\
-((usb_msg)->eidh << UDT1CRI_CAN_EID8_EID15_SHIFT) |\
-(usb_msg)->eidl |\
-UDT1CRI_CAN_EXID_MASK)
-
-#define UDT1CRI_RX_IS_EXID(usb_msg)    ((usb_msg)->sidl & UDT1CRI_SIDL_EXID_MASK)
-#define UDT1CRI_RX_IS_RTR(usb_msg)     ((usb_msg)->dlc & UDT1CRI_DLC_RTR_MASK)
-#define UDT1CRI_TX_IS_EXID(can_frame)  ((can_frame)->can_id & UDT1CRI_CAN_EXID_MASK)
+#define UDT1CRI_RX_IS_RTR(usb_msg)     ((usb_msg)->eid & UDT1CRI_DLC_RTR_MASK)
+#define UDT1CRI_RX_IS_EXID(usb_msg)    ((usb_msg)->eid & UDT1CRI_CAN_EXID_MASK)
 #define UDT1CRI_TX_IS_RTR(can_frame)   ((can_frame)->can_id & UDT1CRI_CAN_RTR_MASK)
+#define UDT1CRI_TX_IS_EXID(can_frame)  ((can_frame)->can_id & UDT1CRI_CAN_EXID_MASK)
 
 struct udt1cri_usb_ctx {
 	struct udt1cri_priv *priv;
@@ -150,7 +88,6 @@ struct udt1cri_priv {
 	struct can_priv can; /* must be the first member */
 	struct sk_buff *echo_skb[UDT1CRI_MAX_TX_URBS];
 	struct udt1cri_usb_ctx tx_context[UDT1CRI_MAX_TX_URBS];
-
 	struct usb_device *udev;
 	struct net_device *netdev;
 	struct usb_anchor tx_submitted;
@@ -164,20 +101,21 @@ struct udt1cri_priv {
 /* command frame */
 struct __packed udt1cri_usb_msg_can {
 	u8 cmd_id;
-	u8 eidh;
-	u8 eidl;
-	u8 sidh;
-	u8 sidl;
 	u8 dlc;
-	u8 data[8];
-	u8 timestamp[4];
+	u8 flags;
 	u8 checksum;
+	u32 eid;
+	u32 timestamp;
+	u8 data[8];
 };
+#define FLAG_CAN_EID 0x01
+#define FLAG_CAN_RTR 0x02
+#define FLAG_CAN_FDF 0x08
 
 /* command frame */
 struct __packed udt1cri_usb_msg {
 	u8 cmd_id;
-	u8 unused[18];
+	u8 unused[19];
 };
 
 struct __packed udt1cri_usb_msg_ka_usb {
@@ -185,7 +123,7 @@ struct __packed udt1cri_usb_msg_ka_usb {
 	u8 termination_state;
 	u8 soft_ver_major;
 	u8 soft_ver_minor;
-	u8 unused[15];
+	u8 unused[16];
 };
 
 struct __packed udt1cri_usb_msg_ka_can {
@@ -204,26 +142,26 @@ struct __packed udt1cri_usb_msg_ka_can {
 	u8 debug_mode;
 	u8 test_complete;
 	u8 test_result;
-	u8 unused[4];
+	u8 unused[5];
 };
 
 struct __packed udt1cri_usb_msg_change_bitrate {
 	u8 cmd_id;
 	u8 bitrate_hi;
 	u8 bitrate_lo;
-	u8 unused[16];
+	u8 unused[17];
 };
 
 struct __packed udt1cri_usb_msg_terminaton {
 	u8 cmd_id;
 	u8 termination;
-	u8 unused[17];
+	u8 unused[18];
 };
 
 struct __packed udt1cri_usb_msg_fw_ver {
 	u8 cmd_id;
 	u8 pic;
-	u8 unused[17];
+	u8 unused[18];
 };
 
 struct bitrate_settings {
@@ -553,13 +491,12 @@ static void udt1cri_usb_process_can(struct udt1cri_priv *priv,
 	if (!skb)
 		return;
 
-	if (UDT1CRI_RX_IS_EXID(msg))
-		cf->can_id = UDT1CRI_CAN_GET_EID(msg);
-	else
-		cf->can_id = UDT1CRI_CAN_GET_SID(msg);
+	cf->can_id = __le32_to_cpu(msg->eid);
+	if (msg->flags & FLAG_CAN_EID)
+		cf->can_id |= CAN_EFF_FLAG;
 
-	if (UDT1CRI_RX_IS_RTR(msg))
-		cf->can_id |= UDT1CRI_CAN_RTR_MASK;
+	if (msg->flags & FLAG_CAN_RTR)
+		cf->can_id |= CAN_RTR_FLAG;
 
 	cf->can_dlc = msg->dlc & UDT1CRI_DLC_MASK;
 
@@ -573,16 +510,8 @@ static void udt1cri_usb_process_can(struct udt1cri_priv *priv,
 static void udt1cri_usb_process_ka_usb(struct udt1cri_priv *priv,
 				    struct udt1cri_usb_msg_ka_usb *msg)
 {
-	if (unlikely(UDT1CRI_IS_USB_DEBUG())) {
-		netdev_info(priv->netdev,
-			    "USB_KA: termination %hhu, ver_maj %hhu, soft_min %hhu\n",
-			    msg->termination_state, msg->soft_ver_major,
-			    msg->soft_ver_minor);
-	}
-
 	if (unlikely(priv->usb_ka_first_pass)) {
-		netdev_info(priv->netdev,
-			    "PIC USB version %hhu.%hhu\n",
+		netdev_info(priv->netdev, "PIC USB version %hhu.%hhu\n",
 			    msg->soft_ver_major, msg->soft_ver_minor);
 
 		priv->usb_ka_first_pass = false;
@@ -594,19 +523,6 @@ static void udt1cri_usb_process_ka_usb(struct udt1cri_priv *priv,
 static void udt1cri_usb_process_ka_can(struct udt1cri_priv *priv,
 				    struct udt1cri_usb_msg_ka_can *msg)
 {
-	if (unlikely(UDT1CRI_IS_CAN_DEBUG())) {
-		netdev_info(priv->netdev,
-			    "CAN_KA: tx_err_cnt %hhu, rx_err_cnt %hhu, rx_buff_ovfl %hhu, tx_bus_off %hhu, can_bitrate %hu, rx_lost %hu, can_stat %hhu, soft_ver %hhu.%hhu, debug_mode %hhu, test_complete %hhu, test_result %hhu\n",
-			    msg->tx_err_cnt, msg->rx_err_cnt, msg->rx_buff_ovfl,
-			    msg->tx_bus_off,
-			    ((msg->can_bitrate_hi << 8) + msg->can_bitrate_lo),
-			    ((msg->rx_lost_hi >> 8) + msg->rx_lost_lo),
-			    msg->can_stat, msg->soft_ver_major,
-			    msg->soft_ver_minor,
-			    msg->debug_mode, msg->test_complete,
-			    msg->test_result);
-	}
-
 	if (unlikely(priv->can_ka_first_pass)) {
 		netdev_info(priv->netdev,
 			    "PIC CAN version %hhu.%hhu\n",
@@ -623,27 +539,27 @@ static void udt1cri_usb_process_rx(struct udt1cri_priv *priv,
 				struct udt1cri_usb_msg *msg)
 {
 	switch (msg->cmd_id) {
-	case MBCA_CMD_I_AM_ALIVE_FROM_CAN:
+	case UDT1CRI_CMD_I_AM_ALIVE_FROM_CAN:
 		udt1cri_usb_process_ka_can(priv,
 					(struct udt1cri_usb_msg_ka_can *)msg);
 		break;
 
-	case MBCA_CMD_I_AM_ALIVE_FROM_USB:
+	case UDT1CRI_CMD_I_AM_ALIVE_FROM_USB:
 		udt1cri_usb_process_ka_usb(priv,
 					(struct udt1cri_usb_msg_ka_usb *)msg);
 		break;
 
-	case MBCA_CMD_RECEIVE_MESSAGE:
+	case UDT1CRI_CMD_RECEIVE_MESSAGE:
 		udt1cri_usb_process_can(priv, (struct udt1cri_usb_msg_can *)msg);
 		break;
 
-	case MBCA_CMD_NOTHING_TO_SEND:
+	case UDT1CRI_CMD_NOTHING_TO_SEND:
 		/* Side effect of communication between PIC_USB and PIC_CAN.
 		 * PIC_CAN is telling us that it has nothing to send
 		 */
 		break;
 
-	case MBCA_CMD_TRANSMIT_MESSAGE_RSP:
+	case UDT1CRI_CMD_TRANSMIT_MESSAGE_RSP:
 		/* Transmission response from the device containing timestamp */
 		break;
 
@@ -675,13 +591,13 @@ static void udt1cri_usb_read_bulk_callback(struct urb *urb)
 		break;
 
 	case -ENOENT:
+	case -EPIPE:
+	case -EPROTO:
 	case -ESHUTDOWN:
 		return;
 
 	default:
-		netdev_info(netdev, "Rx URB aborted (%d)\n",
-			    urb->status);
-
+		netdev_info(netdev, "Rx URB aborted (%d)\n", urb->status);
 		goto resubmit_urb;
 	}
 
@@ -721,6 +637,8 @@ static int udt1cri_usb_start(struct udt1cri_priv *priv)
 	struct net_device *netdev = priv->netdev;
 	int err, i;
 
+	udt1cri_init_ctx(priv);
+
 	for (i = 0; i < UDT1CRI_MAX_RX_URBS; i++) {
 		struct urb *urb = NULL;
 		u8 *buf;
@@ -728,14 +646,12 @@ static int udt1cri_usb_start(struct udt1cri_priv *priv)
 		/* create a URB, and a buffer for it */
 		urb = usb_alloc_urb(0, GFP_KERNEL);
 		if (!urb) {
-			netdev_err(netdev, "No memory left for URBs\n");
 			err = -ENOMEM;
 			break;
 		}
 
 		buf = usb_alloc_coherent(priv->udev, UDT1CRI_USB_RX_BUFF_SIZE,
-					 GFP_KERNEL,
-					 &urb->transfer_dma);
+					 GFP_KERNEL, &urb->transfer_dma);
 		if (!buf) {
 			netdev_err(netdev, "No memory left for USB buffer\n");
 			usb_free_urb(urb);
@@ -744,8 +660,7 @@ static int udt1cri_usb_start(struct udt1cri_priv *priv)
 		}
 
 		usb_fill_bulk_urb(urb, priv->udev,
-				  usb_rcvbulkpipe(priv->udev,
-						  UDT1CRI_USB_EP_IN),
+				  usb_rcvbulkpipe(priv->udev, UDT1CRI_USB_EP_IN),
 				  buf, UDT1CRI_USB_RX_BUFF_SIZE,
 				  udt1cri_usb_read_bulk_callback, priv);
 		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
@@ -776,7 +691,6 @@ static int udt1cri_usb_start(struct udt1cri_priv *priv)
 
 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
 
-	udt1cri_init_ctx(priv);
 	udt1cri_usb_xmit_read_fw_ver(priv, UDT1CRI_VER_REQ_USB);
 	udt1cri_usb_xmit_read_fw_ver(priv, UDT1CRI_VER_REQ_CAN);
 
@@ -857,19 +771,14 @@ static netdev_tx_t udt1cri_usb_start_xmit(struct sk_buff *skb,
 	struct can_frame *cf = (struct can_frame *)skb->data;
 	struct udt1cri_usb_msg_can usb_msg;
 
-	usb_msg.cmd_id = MBCA_CMD_TRANSMIT_MESSAGE_EV;
+	usb_msg.cmd_id = UDT1CRI_CMD_TRANSMIT_MESSAGE_EV;
 	memcpy(usb_msg.data, cf->data, sizeof(usb_msg.data));
 
+	usb_msg.eid = __cpu_to_le32(cf->can_id);
 	if (UDT1CRI_TX_IS_EXID(cf)) {
-		usb_msg.sidl = UDT1CRI_SET_E_SIDL(cf->can_id);
-		usb_msg.sidh = UDT1CRI_SET_E_SIDH(cf->can_id);
-		usb_msg.eidl = UDT1CRI_SET_EIDL(cf->can_id);
-		usb_msg.eidh = UDT1CRI_SET_EIDH(cf->can_id);
+		
 	} else {
-		usb_msg.sidl = UDT1CRI_SET_S_SIDL(cf->can_id);
-		usb_msg.sidh = UDT1CRI_SET_S_SIDH(cf->can_id);
-		usb_msg.eidl = 0;
-		usb_msg.eidh = 0;
+		
 	}
 
 	usb_msg.dlc = cf->can_dlc;
@@ -975,7 +884,7 @@ static void udt1cri_usb_xmit_change_bitrate(struct udt1cri_priv *priv, u16 bitra
 {
 	struct udt1cri_usb_msg_change_bitrate usb_msg;
 
-	usb_msg.cmd_id =  MBCA_CMD_CHANGE_BIT_RATE;
+	usb_msg.cmd_id =  UDT1CRI_CMD_CHANGE_BIT_RATE;
 	usb_msg.bitrate_hi = (0xff00 & bitrate) >> 8;
 	usb_msg.bitrate_lo = (0xff & bitrate);
 
@@ -986,7 +895,7 @@ static void udt1cri_usb_xmit_read_fw_ver(struct udt1cri_priv *priv, u8 pic)
 {
 	struct udt1cri_usb_msg_fw_ver usb_msg;
 
-	usb_msg.cmd_id = MBCA_CMD_READ_FW_VERSION;
+	usb_msg.cmd_id = UDT1CRI_CMD_READ_FW_VERSION;
 	usb_msg.pic = pic;
 
 	udt1cri_usb_xmit_cmd(priv, (struct udt1cri_usb_msg *)&usb_msg);
@@ -996,7 +905,7 @@ static void udt1cri_usb_xmit_termination(struct udt1cri_priv *priv, u8 terminati
 {
 	struct udt1cri_usb_msg_terminaton usb_msg;
 
-	usb_msg.cmd_id = MBCA_CMD_SETUP_TERMINATION_RESISTANCE;
+	usb_msg.cmd_id = UDT1CRI_CMD_SETUP_TERMINATION_RESISTANCE;
 	usb_msg.termination = termination;
 
 	udt1cri_usb_xmit_cmd(priv, (struct udt1cri_usb_msg *)&usb_msg);
@@ -1204,10 +1113,10 @@ static void udt1cri_usb_disconnect(struct usb_interface *intf)
 }
 
 static struct usb_driver udt1cri_usb_driver = {
-	.name =		UDT1CRI_MODULE_NAME,
-	.probe =	udt1cri_usb_probe,
-	.disconnect =	udt1cri_usb_disconnect,
-	.id_table =	udt1cri_usb_table,
+	.name =	 UDT1CRI_MODULE_NAME,
+	.probe = udt1cri_usb_probe,
+	.disconnect = udt1cri_usb_disconnect,
+	.id_table = udt1cri_usb_table,
 };
 
 module_usb_driver(udt1cri_usb_driver);
