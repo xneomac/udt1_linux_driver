@@ -1,6 +1,7 @@
 obj-m+=udt1cri_usb.o
 
-KERNEL_SRC := /lib/modules/$(shell uname -r)/build/
+KERNEL_UNAME ?= $(shell uname -r)
+KERNEL_SRC ?= /lib/modules/$(KERNEL_UNAME)/build/
 SRC := $(shell pwd)
 DEPMOD := depmod -a
 
