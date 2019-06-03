@@ -15,7 +15,7 @@ modules_install: all
 	$(DEPMOD)	
 
 run:
-	modprobe --remove udt1cri_usb
+	modprobe --remove udt1cri_usb || true
 	$(MAKE) modules_install
 	sudo modprobe udt1cri_usb
 

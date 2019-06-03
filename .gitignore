@@ -3,3 +3,11 @@ mcba_usb.creator
 mcba_usb.files
 mcba_usb.includes
 mcba_usb.creator.user
+
+.*.cmd
+.tmp_versions/
+Module.symvers
+*.ko
+*.o
+*.order
+udt1cri_usb.mod.c

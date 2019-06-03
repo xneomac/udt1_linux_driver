@@ -49,9 +49,7 @@
 #define UDT1CRI_USB_EP_IN 1
 #define UDT1CRI_USB_EP_OUT 1
 
-#define UDT1CRI_CAN_CLOCK 40000000
-
-/* Microchip command id */
+/* UDT1CRI command id */
 #define UDT1CRI_CMD_RECEIVE_MESSAGE 0xE3
 #define UDT1CRI_CMD_I_AM_ALIVE_FROM_CAN 0xF5
 #define UDT1CRI_CMD_I_AM_ALIVE_FROM_USB 0xF7
@@ -70,14 +68,6 @@
 
 #define UDT1CRI_CAN_STATE_WRN_TH 95
 #define UDT1CRI_CAN_STATE_ERR_PSV_TH 127
-
-#define UDT1CRI_CAN_RTR_MASK            0x40000000
-#define UDT1CRI_CAN_EXID_MASK           0x80000000
-
-#define UDT1CRI_RX_IS_RTR(usb_msg)     ((usb_msg)->eid & UDT1CRI_DLC_RTR_MASK)
-#define UDT1CRI_RX_IS_EXID(usb_msg)    ((usb_msg)->eid & UDT1CRI_CAN_EXID_MASK)
-#define UDT1CRI_TX_IS_RTR(can_frame)   ((can_frame)->can_id & UDT1CRI_CAN_RTR_MASK)
-#define UDT1CRI_TX_IS_EXID(can_frame)  ((can_frame)->can_id & UDT1CRI_CAN_EXID_MASK)
 
 #define UDT1CRI_TERMINATION_DISABLED CAN_TERMINATION_DISABLED
 #define UDT1CRI_TERMINATION_ENABLED 120
@@ -353,15 +343,16 @@ static netdev_tx_t udt1cri_usb_start_xmit(struct sk_buff *skb,
 
 	usb_msg.cmd_id = UDT1CRI_CMD_TRANSMIT_MESSAGE_EV;
 
-	usb_msg.eid = __cpu_to_le32(cf->can_id);
-	if (UDT1CRI_TX_IS_EXID(cf))
+	usb_msg.flags = 0;
+	usb_msg.eid = (cf->can_id);
+	if (cf->can_id & CAN_EFF_FLAG)
 		usb_msg.flags |= FLAG_CAN_EID;
 
 	usb_msg.dlc = cf->can_dlc;
 
 	memcpy(usb_msg.data, cf->data, usb_msg.dlc);
 
-	if (UDT1CRI_TX_IS_RTR(cf))
+	if (cf->can_id & CAN_RTR_FLAG)
 		usb_msg.flags |= UDT1CRI_DLC_RTR_MASK;
 
 	err = udt1cri_usb_xmit(priv, (struct udt1cri_usb_msg *)&usb_msg, ctx);
@@ -746,7 +737,7 @@ static const struct net_device_ops udt1cri_netdev_ops = {
 	.ndo_start_xmit = udt1cri_usb_start_xmit,
 };
 
-/* Microchip CANBUS has hardcoded bittiming values by default.
+/* UDT1CRI CANBUS has hardcoded bittiming values by default.
  * This function sends request via USB to change the speed and align bittiming
  * values for presentation purposes only
  */
@@ -784,8 +775,6 @@ static int udt1cri_usb_probe(struct usb_interface *intf,
 	struct udt1cri_priv *priv;
 	int err = -ENOMEM;
 	struct usb_device *usbdev = interface_to_usbdev(intf);
-
-	dev_info(&intf->dev, "UniSwarm UDT1CRI CAN debugger connected\n");
 
 	netdev = alloc_candev(sizeof(struct udt1cri_priv), UDT1CRI_MAX_TX_URBS);
 	if (!netdev) {
@@ -844,7 +833,7 @@ static int udt1cri_usb_probe(struct usb_interface *intf,
 		goto cleanup_unregister_candev;
 	}
 
-	dev_info(&intf->dev, "Microchip CAN BUS Analyzer connected\n");
+	dev_info(&intf->dev, "UniSwarm UDT1CRI CAN debugger connected\n");
 
 	return 0;
 
