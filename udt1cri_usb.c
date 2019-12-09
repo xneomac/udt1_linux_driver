@@ -353,7 +353,7 @@ static netdev_tx_t udt1cri_usb_start_xmit(struct sk_buff *skb,
 	memcpy(usb_msg.data, cf->data, usb_msg.dlc);
 
 	if (cf->can_id & CAN_RTR_FLAG)
-		usb_msg.flags |= UDT1CRI_DLC_RTR_MASK;
+		usb_msg.flags |= FLAG_CAN_RTR;
 
 	err = udt1cri_usb_xmit(priv, (struct udt1cri_usb_msg *)&usb_msg, ctx);
 	if (err)
