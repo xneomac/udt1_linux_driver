@@ -11,11 +11,13 @@ Originally the tool is supported on Windows environment only. This project adds 
 ## Usage
 ### Building and installing
 ```
-git clone https://github.com/rkollataj/mcba_usb.git
-cd mcba_usb
-make
-sudo make modules_install
-sudo modprobe mcba_usb
+git clone https://github.com/UniSwarm/udt1_linux_driver.git
+cd udt1_linux_driver
+sudo make modules_install run
+
+if there are error to do :
+make clean
+sudo make modules_install run
 ```
 ### Basic SocketCAN usage
 To start SocketCAN interface:
