@@ -1,12 +1,4 @@
-# Linux kernel driver for Microchip CAN BUS Analyzer Tool
-
-The CAN BUS Analyzer Tool is a simple to use low cost CAN bus monitor which can be used to develop and debug a high speed CAN network. The tool supports CAN 2.0b and ISO11898-2 and a broad range of functions which allow it to be used across various market segments including automotive, industrial, medical and marine. The toolkit comes with all the hardware and software required to connect a CAN network to a PC. The Graphical User Interface makes it easy to quickly observe and interpret bus traffic.
-
-[Product site](http://www.microchip.com/Developmenttools/ProductDetails.aspx?PartNO=APGDT002)
-
-Originally the tool is supported on Windows environment only. This project adds support for the tool to Linux Kernel (SocketCAN). 
-
-**NOTE: Driver is a part of Linux Kernel starting from [4.12](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can/usb/mcba_usb.c?h=v4.12) version**
+# Linux kernel driver for UniSwarm UDT1CR CAN Debugger Tool 
 
 ## Usage
 ### Building and installing
@@ -35,7 +27,7 @@ sudo make dkms
 ```
 if UEFI Secure Boot is actived follow instruction:
 
--> Configuring SeureBoot :
+-> Configuring Secure Boot :
 - Ok and enter new pasword
 - reboot
 
