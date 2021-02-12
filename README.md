@@ -28,11 +28,23 @@ make clean
 sudo make modules_install run
 ```
 
-#### DKMS method whitout UEFI Secure Boot:
+#### DKMS method:
 ```bash
 cd udt1_linux_driver
 sudo make dkms
 ```
+if UEFI Secure Boot is actived follow instruction:
+
+-> Configuring SeureBoot :
+- Ok and enter new pasword
+- reboot
+
+-> Perform MOK management :
+- select "Enroll MOK"
+- select "Continue" -> "Ok" -> enter password
+- reboot
+
+
 #### Installation rules udev:
 ```bash
 cd udt1_linux_driver
