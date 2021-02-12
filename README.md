@@ -10,33 +10,65 @@ Originally the tool is supported on Windows environment only. This project adds 
 
 ## Usage
 ### Building and installing
-```
+
+Download the Repository to your local machine:
+
+```bash
 git clone https://github.com/UniSwarm/udt1_linux_driver.git
+```
+
+#### Classic method 
+```bash
 cd udt1_linux_driver
 sudo make modules_install run
-
-if there are error to do :
+```
+if there are error :
+```bash
 make clean
 sudo make modules_install run
 ```
+
+#### DKMS method whitout UEFI Secure Boot:
+```bash
+cd udt1_linux_driver
+sudo make dkms
+```
+#### Installation rules udev:
+```bash
+cd udt1_linux_driver
+sudo make udev_install
+```
+
+### Automatic installation dkms and rules udev:
+```
+cd udt1_linux_driver
+sudo make run_auto
+```
+
+### To remove all installed files: 
+```bash
+cd udt1_linux_driver
+sudo make remove_all
+```
+
 ### Basic SocketCAN usage
 To start SocketCAN interface:
-```
+```bash
 sudo ip link set can0 type can bitrate 500000
 sudo ip link set can0 up
 ```
 To send CAN frame:
-```
+```bash
 cansend can0 001#DEADBEEF
 cansend can0 1000001#DEADBEEF
 ```
 To dump CAN frames:
-```
+```bash
 candump can0
 ```
 
 ### Supported bus settings
-The tool works internally with 40Mhz clock. Following bus speed are supported by default:
+The tool works internally with 80Mhz clock. Following bus speed are supported by default:
 * 20 Kbps
 * 33.3 Kbps
 * 50 Kbps
@@ -57,25 +89,3 @@ The tool works internally with 40Mhz clock. Following bus speed are supported by
 * 1000 Kbps
 
 Note: Bittiming parameters are hardcoded inside device. Only speed can be configured using iproute2 utils.
-
-### Termination
-The tool supports build in termination. It can be controlled by sysfs. To read current termination status:
-```
-cat /sys/class/net/can0/termination
-```
-To enable termination:
-```
-echo 1 > /sys/class/net/can0/termination
-```
-To disable termination:
-```
-echo 0 > /sys/class/net/can0/termination
-```
-Termination values are stored in device's EEPROM (no need to set it again after device reconnection).
-
-## Known issues
-Official Microchip CAN BUS Analyzer firmware v2.3 contains bugs:
-* Too low SPI sychro time (PIC_USB->PIC_CAN) causes CAN frame to be lost
-* Sending remote frames do not work
-
-Above issues are fixed in: https://github.com/rkollataj/mcba_firmware
